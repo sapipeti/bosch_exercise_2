@@ -86,16 +86,13 @@ def create_plot(df, df2, column, name, location):
 
     x_axis = np.arange(len(df[column]))
     plt.subplot(location)
+    #plt.subplot2grid(shape=(2, 17), loc=(int(location.split(',')[0]), int(location.split(',')[1])), colspan=5)
 
     # Make the plot
     plt.bar(x_axis - (bar_width / 2), df[column], color='r', width=bar_width,
             edgecolor='grey', label='OpenWeather')
     plt.bar(x_axis + (bar_width / 2), df2[column], color='b', width=bar_width,
             edgecolor='grey', label='METAR')
-
-    # for i in range(len(df[column])):
-    #    plt.annotate(str(df[column][i]), xy=(i, df[column][i]), ha='right', va='bottom')
-    #    plt.annotate(str(df2[column][i]), xy=(i, df2[column][i]), ha='left', va='bottom')
 
     plt.ylabel(name, fontweight='bold')
     plt.xticks(x_axis, ['Warsaw', 'Budapest', 'Prague', 'Wien'])
@@ -118,13 +115,38 @@ def calculate_metric():
     df2 = pd.DataFrame([vars(f) for f in new_data])
     print(df2)
 
+    df['Source'] = 'OpenWeather'
+    df2['Source'] = 'METAR'
+    metric_df = pd.concat([df, df2])
+    metric_df.sort_values(by=['name'], inplace=True)
+    print(metric_df)
+
+    out = metric_df.to_json(orient='records')[1:-1].replace('},{', '} {')
+    with open('metric.json', 'w') as f:
+        f.write(out)
+
+    data = [['OpenWeather'], ['METAR']]
+
+    for i in range(len(df['date'])):
+        data[0].append(df['date'][i])
+        data[1].append(df2['date'][i])
+
+    date_df = pd.DataFrame(data, columns=['', 'Warsaw', 'Budapest', 'Prague', 'Wien'])
+    print(date_df)
+
     columns = {231: ['temp', 'Temperature (°C)'], 232: ['hum', 'Humidity (%)'], 233: ['wind_speed', 'Wind Speed (mps)'],
-               234: ['wind_degree', 'Wind Degree (°)'], 235: ['vis', 'Visibility (m)']}
+               235: ['wind_degree', 'Wind Degree (°)'], 236: ['vis', 'Visibility (m)']}
+    #columns = {'0,0': ['vis', 'Visibility (m)'], '0,6': ['temp', 'Temperature (°C)'], '0,12': ['hum', 'Humidity (%)'],
+    #           '1,3': ['wind_speed', 'Wind Speed (mps)'], '1,9': ['wind_degree', 'Wind Degree (°)']}
 
     fig, axs = plt.subplots(5)
 
     for location, column in columns.items():
         create_plot(df, df2, column[0], column[1], location)
+
+    #plt.subplot2grid(shape=(2, 17), loc=(1, 0), colspan=3)
+    plt.subplot(234)
+    plt.table(date_df.values, colLabels=date_df.columns, loc='bottom left')
 
     handles, labels = plt.gca().get_legend_handles_labels()
     fig.legend(handles, labels, loc='lower right')
