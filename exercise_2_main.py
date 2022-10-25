@@ -42,9 +42,12 @@ class Location:
 
     def __str__(self):
         return "Name: " + self.name + " Lat: " + str(self.lat) + " Lon: " + str(self.lon) + " Date: " + str(
-            self.date) + " Temp: " + str(
+            self.date) + " Source: " + self.source + " Temp: " + str(
             self.temp) + " Hum: " + str(self.hum) + " Vis: " + str(self.vis) + " Wind Speed: " + str(
             self.wind_speed) + " Wind Degree: " + str(self.wind_degree)
+
+    def __eq__(self, other):
+        return vars(self) == vars(other)
 
 
 def get_openweather_data(cities_json):
@@ -52,12 +55,13 @@ def get_openweather_data(cities_json):
 
     for city in cities_json:
         openweather_json = get_openweather_json(city["lat"], city["lon"])
-        openweather_data.append(Location(city["name"], city["lat"], city["lon"],
-                                         datetime.utcfromtimestamp(openweather_json["dt"]).strftime('%Y-%m-%dT%H:%MZ'),
-                                         "OpenWeather",
-                                         openweather_json["main"]["temp"],
-                                         openweather_json["main"]["humidity"], openweather_json["visibility"],
-                                         openweather_json["wind"]["speed"], openweather_json["wind"]["deg"]))
+        openweather_data.append(
+            Location(city["name"], openweather_json["coord"]["lat"], openweather_json["coord"]["lon"],
+                     datetime.utcfromtimestamp(openweather_json["dt"]).strftime('%Y-%m-%dT%H:%MZ'),
+                     "OpenWeather",
+                     openweather_json["main"]["temp"],
+                     openweather_json["main"]["humidity"], openweather_json["visibility"],
+                     openweather_json["wind"]["speed"], openweather_json["wind"]["deg"]))
     return openweather_data
 
 
@@ -66,8 +70,8 @@ def get_metar_data(cities_json):
     # TODO: Nullcheck here
     for city in cities_json:
         metar_json = get_metar_json(city["lat"], city["lon"])
-        metar_data.append(Location(city["name"], metar_json["data"][0]["station"]["geometry"]["coordinates"][1],
-                                   metar_json["data"][0]["station"]["geometry"]["coordinates"][0],
+        metar_data.append(Location(city["name"], metar_json["data"][0]["position"]["base"]["latitude"],
+                                   metar_json["data"][0]["position"]["base"]["longitude"],
                                    metar_json["data"][0]["observed"],
                                    "METAR",
                                    metar_json["data"][0]["temperature"]["celsius"],
@@ -131,11 +135,11 @@ def create_plot(df, df2, dates_matrix, cells):
 
     for location, column in cells.items():
         ax = plt.subplot2grid((5, 3), (location[0], location[1]), rowspan=2)
-        create_subplot(df, df2,data_source_1, data_source_2, column[0], column[1], ax)
+        create_subplot(df, df2, data_source_1, data_source_2, column[0], column[1], ax)
 
     handles, labels = plt.gca().get_legend_handles_labels()
     fig.legend(handles, labels, prop={'size': 12}, bbox_to_anchor=(1, 0.32))
-    plt.suptitle('Comparing '+data_source_1+' with '+data_source_2+' data', fontweight='bold')
+    plt.suptitle('Comparing ' + data_source_1 + ' with ' + data_source_2 + ' data', fontweight='bold')
     plt.tight_layout()
     plt.show()
 
