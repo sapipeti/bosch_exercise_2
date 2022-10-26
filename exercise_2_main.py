@@ -4,12 +4,13 @@ import requests as requests
 import exercise_2_constants as con
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 
 api_key = con.API_KEY_CHECKWX
 
 
 def get_cities():
-    url = "http://127.0.0.1:8000/city_coordinates/"
+    url = "http://127.0.0.1:8000/city_lat_lon/"
     response = requests.request("GET", url)
     return response.json()
 
@@ -67,18 +68,20 @@ def get_openweather_data(cities_json):
 
 def get_metar_data(cities_json):
     metar_data = []
-    # TODO: Nullcheck here
-    for city in cities_json:
-        metar_json = get_metar_json(city["lat"], city["lon"])
-        metar_data.append(Location(city["name"], metar_json["data"][0]["position"]["base"]["latitude"],
-                                   metar_json["data"][0]["position"]["base"]["longitude"],
-                                   metar_json["data"][0]["observed"],
-                                   "METAR",
-                                   metar_json["data"][0]["temperature"]["celsius"],
-                                   metar_json["data"][0]["humidity"]["percent"],
-                                   metar_json["data"][0]["visibility"]["meters_float"],
-                                   metar_json["data"][0]["wind"]["speed_mps"],
-                                   metar_json["data"][0]["wind"]["degrees"]))
+    try:
+        for city in cities_json:
+            metar_json = get_metar_json(city["lat"], city["lon"])
+            metar_data.append(Location(city["name"], metar_json["data"][0]["position"]["base"]["latitude"],
+                                       metar_json["data"][0]["position"]["base"]["longitude"],
+                                       metar_json["data"][0]["observed"],
+                                       "METAR",
+                                       metar_json["data"][0]["temperature"]["celsius"],
+                                       metar_json["data"][0]["humidity"]["percent"],
+                                       metar_json["data"][0]["visibility"]["meters_float"],
+                                       metar_json["data"][0]["wind"]["speed_mps"],
+                                       metar_json["data"][0]["wind"]["degrees"]))
+    except KeyError:
+        raise Exception("Inconsistent METAR API data. Values are missing.")
     return metar_data
 
 
@@ -142,6 +145,7 @@ def create_plot(df, df2, dates_matrix, cells):
     plt.suptitle('Comparing ' + data_source_1 + ' with ' + data_source_2 + ' data', fontweight='bold')
     plt.tight_layout()
     plt.show()
+    plt.savefig("report"+time.strftime("%Y%m%d-%H%M%S")+".png")
 
 
 def calculate_metric():
@@ -163,4 +167,5 @@ def calculate_metric():
     create_plot(openweather_df, metar_df, dates_matrix, cells)
 
 
-calculate_metric()
+if __name__ == '__main__':
+    calculate_metric()
