@@ -1,4 +1,4 @@
-exercise_2_constants.py
-metric.json
+constants/exercise_2_constants.py
+data/metric.json
 .coverage
 *.pyc

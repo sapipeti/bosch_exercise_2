@@ -1,7 +1,7 @@
 from datetime import datetime
 import numpy as np
 import requests as requests
-import exercise_2_constants as con
+from constants import exercise_2_constants as con
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
@@ -81,13 +81,13 @@ def get_metar_data(cities_json):
                                        metar_json["data"][0]["wind"]["speed_mps"],
                                        metar_json["data"][0]["wind"]["degrees"]))
     except KeyError:
-        raise Exception("Inconsistent METAR API data. Values are missing.")
+        raise Exception("Inconsistent METAR API data. Values are missing. Try running the code later..")
     return metar_data
 
 
 def df_to_json_file(df, filename):
     out = df.to_json(orient='records')
-    with open(str(filename) + '.json', 'w') as f:
+    with open('../data/'+str(filename) + '.json', 'w') as f:
         f.write(out)
 
 
@@ -144,8 +144,8 @@ def create_plot(df, df2, dates_matrix, cells):
     fig.legend(handles, labels, prop={'size': 12}, bbox_to_anchor=(1, 0.32))
     plt.suptitle('Comparing ' + data_source_1 + ' with ' + data_source_2 + ' data', fontweight='bold')
     plt.tight_layout()
+    plt.savefig("../pictures/report" + time.strftime("%Y%m%d-%H%M%S") + ".png")
     plt.show()
-    plt.savefig("report"+time.strftime("%Y%m%d-%H%M%S")+".png")
 
 
 def calculate_metric():

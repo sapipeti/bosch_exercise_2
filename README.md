@@ -17,3 +17,5 @@ The metric is also saved to the hard drive in a json format. It can be found in 
 A plot is also shown which shows the temperature of the cities in Celsius side by side with the date of the data itself. This plot is saved to the root of the project as a png file.
 
 The plot is written generically. Which means future sources of data can be added to the plot instead of the existing ones.
+
+![](pictures/report.png)
